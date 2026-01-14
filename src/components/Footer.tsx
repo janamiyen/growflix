@@ -1,20 +1,15 @@
 import { Instagram, Mail } from "lucide-react";
-import growflixLockup from "@/assets/growflix-lockup.png";
 
 const Footer = () => {
   return (
     <footer className="border-t border-border bg-card py-12">
       <div className="container mx-auto px-4">
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Logo & Description */}
+          {/* Description */}
           <div className="space-y-4">
-            <a href="/" className="inline-flex items-center">
-              <img
-                src={growflixLockup}
-                alt="GROWFLIX"
-                className="h-10 w-auto max-w-[220px]"
-              />
-            </a>
+            <h4 className="font-display text-lg font-semibold text-foreground">
+              GROWFLIX
+            </h4>
             <p className="text-sm text-muted-foreground">
               Tu academia de cultivo en constante actualización. 
               Aprendé mientras seas parte de Growflix.
