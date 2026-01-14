@@ -1,5 +1,5 @@
 import { Instagram, Mail } from "lucide-react";
-import growflixLogo from "@/assets/growflix-logo.png";
+import growflixLockup from "@/assets/growflix-lockup.png";
 
 const Footer = () => {
   return (
@@ -8,11 +8,11 @@ const Footer = () => {
         <div className="grid gap-8 md:grid-cols-3">
           {/* Logo & Description */}
           <div className="space-y-4">
-            <a href="/" className="inline-block">
-              <img 
-                src={growflixLogo} 
-                alt="GROWFLIX" 
-                className="h-10 w-auto"
+            <a href="/" className="inline-flex items-center">
+              <img
+                src={growflixLockup}
+                alt="GROWFLIX"
+                className="h-10 w-auto max-w-[220px]"
               />
             </a>
             <p className="text-sm text-muted-foreground">
