@@ -1,15 +1,15 @@
-import growflixLogo from "@/assets/growflix-logo.jpg";
+import growflixLogo from "@/assets/growflix-logo.png";
 
 const Header = () => {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-20 items-center justify-between px-4">
         {/* Logo */}
         <a href="/" className="flex items-center">
           <img 
             src={growflixLogo} 
             alt="GROWFLIX" 
-            className="h-8 w-auto"
+            className="h-12 w-auto"
           />
         </a>
 

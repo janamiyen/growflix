@@ -1,5 +1,5 @@
 import { Instagram, Mail } from "lucide-react";
-import growflixLogo from "@/assets/growflix-logo.jpg";
+import growflixLogo from "@/assets/growflix-logo.png";
 
 const Footer = () => {
   return (
@@ -12,7 +12,7 @@ const Footer = () => {
               <img 
                 src={growflixLogo} 
                 alt="GROWFLIX" 
-                className="h-8 w-auto"
+                className="h-10 w-auto"
               />
             </a>
             <p className="text-sm text-muted-foreground">
