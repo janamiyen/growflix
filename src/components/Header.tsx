@@ -3,18 +3,20 @@ import growflixLockup from "@/assets/growflix-lockup.png";
 const Header = () => {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-20 items-center justify-between px-4">
-        {/* Logo */}
-        <a href="/" className="flex items-center py-2">
-          <img
-            src={growflixLockup}
-            alt="GROWFLIX"
-            className="h-12 w-auto max-w-[240px] sm:max-w-[280px]"
-          />
-        </a>
+      <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4">
+        {/* Left: Logo container */}
+        <div className="flex items-center">
+          <a href="/" className="flex items-center px-2">
+            <img
+              src={growflixLockup}
+              alt="GROWFLIX"
+              className="h-8 w-auto"
+            />
+          </a>
+        </div>
 
-        {/* Nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        {/* Center: Navigation */}
+        <nav className="hidden items-center justify-center gap-8 md:flex">
           <a href="#cursos" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Cursos
           </a>
@@ -26,12 +28,9 @@ const Header = () => {
           </a>
         </nav>
 
-        {/* CTA */}
-        <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-muted-foreground sm:block">¿Ya sos suscriptor?</span>
-          <button className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80">
-            Iniciar sesión
-          </button>
+        {/* Right: Empty */}
+        <div className="flex items-center justify-end">
+          {/* Reserved for future use */}
         </div>
       </div>
     </header>
