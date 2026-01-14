@@ -57,7 +57,7 @@ const CourseCard = ({ id, title, image, isLocked = true, onClick }: CourseCardPr
         </h3>
         {isLocked && (
           <p className="mt-1 text-sm text-muted-foreground">
-            Contenido bloqueado
+            Solo para suscriptores
           </p>
         )}
       </div>

@@ -1,16 +1,14 @@
-import { Leaf } from "lucide-react";
-
 const Header = () => {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
+        {/* Logo - Placeholder until user provides image */}
+        <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-            <Leaf className="h-5 w-5 text-primary-foreground" />
+            <span className="text-lg font-bold text-primary-foreground">G</span>
           </div>
-          <span className="font-display text-xl font-bold text-foreground">
-            CannaGrow
+          <span className="font-display text-xl font-bold text-foreground tracking-wide">
+            GROWFLIX
           </span>
         </div>
 
@@ -29,7 +27,7 @@ const Header = () => {
 
         {/* CTA */}
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-muted-foreground sm:block">¿Ya eres miembro?</span>
+          <span className="hidden text-sm text-muted-foreground sm:block">¿Ya sos suscriptor?</span>
           <button className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80">
             Iniciar sesión
           </button>

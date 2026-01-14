@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, ChevronDown } from "lucide-react";
+import { Play, ChevronDown, Crown, RefreshCw, Users } from "lucide-react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import PremiumModal from "@/components/PremiumModal";
 import CoursePlayer from "@/components/CoursePlayer";
@@ -13,6 +14,9 @@ import course2 from "@/assets/course-2.jpg";
 import course3 from "@/assets/course-3.jpg";
 import course4 from "@/assets/course-4.jpg";
 
+// Subscription price in ARS
+const MONTHLY_PRICE = 9990;
+
 // Course data
 const courses = [
   {
@@ -20,7 +24,7 @@ const courses = [
     title: "Fundamentos del Cultivo",
     description: "Aprende desde cero los principios esenciales del cultivo de cannabis. Desde la germinación hasta las primeras semanas de crecimiento vegetativo.",
     image: course1,
-    price: 49,
+    price: 0, // Not used in subscription model
     modules: 8,
     duration: "4h 30min",
   },
@@ -29,7 +33,7 @@ const courses = [
     title: "Nutrición y Alimentación",
     description: "Domina el arte de nutrir tus plantas. Entiende los macro y micronutrientes, programas de alimentación y cómo diagnosticar deficiencias.",
     image: course2,
-    price: 59,
+    price: 0,
     modules: 6,
     duration: "3h 15min",
   },
@@ -38,7 +42,7 @@ const courses = [
     title: "Iluminación Avanzada",
     description: "Descubre los secretos de la iluminación para maximizar tus cosechas. LED, HPS, espectros de luz y ciclos fotoperíodicos.",
     image: course3,
-    price: 69,
+    price: 0,
     modules: 5,
     duration: "2h 45min",
   },
@@ -47,7 +51,7 @@ const courses = [
     title: "Cosecha y Curado",
     description: "El arte final del cultivo. Aprende cuándo y cómo cosechar, técnicas de secado y curado para potenciar sabor y potencia.",
     image: course4,
-    price: 55,
+    price: 0,
     modules: 4,
     duration: "2h 00min",
   },
@@ -86,11 +90,11 @@ const sampleModules = [
 const Index = () => {
   const [selectedCourse, setSelectedCourse] = useState<typeof courses[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [unlockedCourseId, setUnlockedCourseId] = useState<string | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const handleCourseClick = (course: typeof courses[0]) => {
-    if (unlockedCourseId === course.id) {
-      // Course is unlocked, would navigate to player
+    if (isSubscribed) {
+      // User is subscribed, navigate to player
       setSelectedCourse(course);
     } else {
       setSelectedCourse(course);
@@ -98,14 +102,14 @@ const Index = () => {
     }
   };
 
-  const handleUnlock = (courseId: string) => {
-    // In production, this would trigger payment flow
-    setUnlockedCourseId(courseId);
+  const handleSubscribe = () => {
+    // In production, this would trigger MercadoPago payment flow
+    setIsSubscribed(true);
     setIsModalOpen(false);
   };
 
-  // If viewing unlocked course
-  if (unlockedCourseId && selectedCourse && !isModalOpen) {
+  // If viewing course (subscribed user)
+  if (isSubscribed && selectedCourse && !isModalOpen) {
     return (
       <CoursePlayer
         courseTitle={selectedCourse.title}
@@ -140,12 +144,12 @@ const Index = () => {
         {/* Content */}
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
           <h1 className="animate-fade-in font-display text-4xl font-bold leading-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-            Cultiva con
-            <span className="text-gradient-premium"> conocimiento</span>
+            Aprendé a cultivar
+            <span className="text-primary"> como un experto</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl animate-slide-up text-lg text-muted-foreground sm:text-xl" style={{ animationDelay: "0.2s" }}>
-            Aprende jardinería y botánica canábica con cursos profesionales. 
-            Desde principiantes hasta cultivadores avanzados.
+            Accedé a todos los cursos con una suscripción mensual. 
+            Contenido actualizado, nuevos cursos cada mes.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row" style={{ animationDelay: "0.4s" }}>
             <Button variant="hero" size="xl" className="gap-2 animate-fade-in" style={{ animationDelay: "0.4s" }}>
@@ -155,6 +159,12 @@ const Index = () => {
             <Button variant="hero-outline" size="xl" className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
               Ver demostración
             </Button>
+          </div>
+
+          {/* Subscription Badge */}
+          <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-foreground animate-fade-in" style={{ animationDelay: "0.6s" }}>
+            <Crown className="h-4 w-4 text-primary" />
+            <span>Una sola suscripción, acceso total</span>
           </div>
         </div>
 
@@ -172,7 +182,8 @@ const Index = () => {
               Nuestros Cursos
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Contenido exclusivo diseñado por expertos cultivadores con años de experiencia.
+              Contenido exclusivo diseñado por expertos cultivadores. 
+              Accedé a todos con tu suscripción.
             </p>
           </div>
 
@@ -188,7 +199,7 @@ const Index = () => {
                   id={course.id}
                   title={course.title}
                   image={course.image}
-                  isLocked={unlockedCourseId !== course.id}
+                  isLocked={!isSubscribed}
                   onClick={() => handleCourseClick(course)}
                 />
               </div>
@@ -197,65 +208,102 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Value Proposition */}
+      {/* Value Proposition - Updated for subscription model */}
       <section className="border-t border-border bg-card py-20">
         <div className="container mx-auto px-4">
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+              Una academia viva
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+              Con tu suscripción, accedés a una plataforma en constante evolución.
+            </p>
+          </div>
+
           <div className="grid gap-12 md:grid-cols-3">
             <div className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
-                <span className="text-2xl">🌱</span>
+                <Crown className="h-8 w-8 text-primary" />
               </div>
               <h3 className="mb-2 font-display text-xl font-semibold text-foreground">
-                Paso a Paso
+                Acceso Total
               </h3>
               <p className="text-muted-foreground">
-                Contenido estructurado para que aprendas a tu ritmo, desde lo básico hasta técnicas avanzadas.
+                Una sola suscripción te da acceso a todos los cursos de la plataforma, sin límites.
               </p>
             </div>
             <div className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
-                <span className="text-2xl">📹</span>
+                <RefreshCw className="h-8 w-8 text-primary" />
               </div>
               <h3 className="mb-2 font-display text-xl font-semibold text-foreground">
-                Videos HD
+                Contenido Actualizado
               </h3>
               <p className="text-muted-foreground">
-                Producción profesional con demostraciones claras y detalladas de cada técnica.
+                Nuevos cursos y actualizaciones mes a mes. Siempre tendrás contenido fresco.
               </p>
             </div>
             <div className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
-                <span className="text-2xl">🎓</span>
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <h3 className="mb-2 font-display text-xl font-semibold text-foreground">
-                Acceso Vitalicio
+                Comunidad Activa
               </h3>
               <p className="text-muted-foreground">
-                Una vez que compras, el curso es tuyo para siempre. Incluyendo todas las actualizaciones.
+                Aprendé mientras seas parte de Growflix. Comunidad de cultivadores que crecen juntos.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-background py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2025 CannaGrow. Todos los derechos reservados.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground/60">
-            Contenido educativo. Verifica la legislación local antes de cultivar.
-          </p>
+      {/* Subscription CTA Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-2xl rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center sm:p-12">
+            <Crown className="mx-auto h-12 w-12 text-primary" />
+            <h2 className="mt-6 font-display text-3xl font-bold text-foreground">
+              Suscribite a Growflix
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Accedé a todos los cursos, actualizaciones constantes y nueva formación cada mes.
+            </p>
+            <div className="mt-6">
+              <p className="font-display text-4xl font-bold text-primary">
+                ARS ${MONTHLY_PRICE.toLocaleString('es-AR')}
+                <span className="text-lg font-normal text-muted-foreground">/mes</span>
+              </p>
+            </div>
+            <Button 
+              variant="premium" 
+              size="xl" 
+              className="mt-8 gap-2"
+              onClick={() => {
+                setSelectedCourse(courses[0]);
+                setIsModalOpen(true);
+              }}
+            >
+              <Crown className="h-5 w-5" />
+              Comenzar ahora
+            </Button>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Pagá con MercadoPago. Cancelá cuando quieras.
+            </p>
+          </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Premium Modal */}
       <PremiumModal
         course={selectedCourse}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onUnlock={handleUnlock}
+        onSubscribe={handleSubscribe}
+        monthlyPrice={MONTHLY_PRICE}
       />
     </div>
   );

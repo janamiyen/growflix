@@ -6,47 +6,49 @@
 
 @layer base {
   :root {
-    --background: 150 10% 6%;
-    --foreground: 45 20% 95%;
+    --background: 120 10% 6%;
+    --foreground: 90 10% 95%;
 
-    --card: 150 8% 10%;
-    --card-foreground: 45 20% 95%;
+    --card: 120 8% 10%;
+    --card-foreground: 90 10% 95%;
 
-    --popover: 150 8% 8%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 120 8% 8%;
+    --popover-foreground: 90 10% 95%;
 
-    --primary: 145 45% 35%;
-    --primary-foreground: 45 20% 98%;
+    /* Primary: #1A741B converted to HSL = 120 63% 28% */
+    --primary: 120 63% 28%;
+    --primary-foreground: 90 10% 98%;
 
-    --secondary: 150 8% 15%;
-    --secondary-foreground: 45 20% 90%;
+    --secondary: 120 8% 15%;
+    --secondary-foreground: 90 10% 90%;
 
-    --muted: 150 5% 18%;
-    --muted-foreground: 45 10% 60%;
+    --muted: 120 5% 18%;
+    --muted-foreground: 90 10% 60%;
 
+    /* Accent: keeping gold/amber for premium feel */
     --accent: 42 80% 55%;
-    --accent-foreground: 150 10% 6%;
+    --accent-foreground: 120 10% 6%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 150 8% 18%;
-    --input: 150 8% 18%;
-    --ring: 145 45% 35%;
+    --border: 120 8% 18%;
+    --input: 120 8% 18%;
+    --ring: 120 63% 28%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gradient-hero: linear-gradient(180deg, hsl(150 10% 6% / 0) 0%, hsl(150 10% 6%) 100%);
-    --gradient-card: linear-gradient(180deg, transparent 40%, hsl(150 10% 6% / 0.95) 100%);
-    --gradient-premium: linear-gradient(135deg, hsl(42 80% 55%) 0%, hsl(35 90% 45%) 100%);
-    --shadow-card: 0 8px 32px hsl(150 10% 0% / 0.4);
-    --shadow-premium: 0 0 40px hsl(42 80% 55% / 0.3);
+    --gradient-hero: linear-gradient(180deg, hsl(120 10% 6% / 0) 0%, hsl(120 10% 6%) 100%);
+    --gradient-card: linear-gradient(180deg, transparent 40%, hsl(120 10% 6% / 0.95) 100%);
+    --gradient-premium: linear-gradient(135deg, hsl(120 63% 28%) 0%, hsl(120 70% 35%) 100%);
+    --shadow-card: 0 8px 32px hsl(120 10% 0% / 0.4);
+    --shadow-premium: 0 0 40px hsl(120 63% 28% / 0.3);
   }
 
   .dark {
-    --background: 150 10% 6%;
-    --foreground: 45 20% 95%;
+    --background: 120 10% 6%;
+    --foreground: 90 10% 95%;
   }
 }
 

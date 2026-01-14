@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Lock, CheckCircle2, Play, BookOpen, Award } from "lucide-react";
+import { CheckCircle2, Play, BookOpen, RefreshCw, Crown } from "lucide-react";
 
 interface Course {
   id: string;
@@ -16,18 +16,19 @@ interface PremiumModalProps {
   course: Course | null;
   isOpen: boolean;
   onClose: () => void;
-  onUnlock: (courseId: string) => void;
+  onSubscribe: () => void;
+  monthlyPrice: number;
 }
 
 const benefits = [
-  "Acceso de por vida al curso completo",
+  "Acceso ilimitado a todos los cursos",
+  "Contenido actualizado mes a mes",
+  "Nuevos cursos agregados regularmente",
   "Videos en alta definición",
-  "Actualizaciones gratuitas",
-  "Soporte prioritario",
-  "Certificado de finalización",
+  "Soporte prioritario de la comunidad",
 ];
 
-const PremiumModal = ({ course, isOpen, onClose, onUnlock }: PremiumModalProps) => {
+const PremiumModal = ({ course, isOpen, onClose, onSubscribe, monthlyPrice }: PremiumModalProps) => {
   if (!course) return null;
 
   return (
@@ -65,8 +66,8 @@ const PremiumModal = ({ course, isOpen, onClose, onUnlock }: PremiumModalProps) 
               <span className="text-sm">{course.duration}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Award className="h-4 w-4" />
-              <span className="text-sm">Certificado incluido</span>
+              <RefreshCw className="h-4 w-4" />
+              <span className="text-sm">Actualización constante</span>
             </div>
           </div>
 
@@ -75,10 +76,25 @@ const PremiumModal = ({ course, isOpen, onClose, onUnlock }: PremiumModalProps) 
             {course.description}
           </p>
 
+          {/* Subscription Model Highlight */}
+          <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 p-4">
+            <div className="flex items-start gap-3">
+              <Crown className="mt-0.5 h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">
+                  Accedé a este curso y todos los demás con una suscripción mensual
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Una sola suscripción, acceso total a toda la academia.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Benefits */}
           <div className="mb-6">
             <h4 className="mb-3 font-display text-lg font-semibold text-foreground">
-              ¿Qué incluye?
+              ¿Qué incluye tu suscripción?
             </h4>
             <ul className="space-y-2">
               {benefits.map((benefit, index) => (
@@ -93,19 +109,20 @@ const PremiumModal = ({ course, isOpen, onClose, onUnlock }: PremiumModalProps) 
           {/* Price & CTA */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-4">
             <div>
-              <p className="text-sm text-muted-foreground">Precio del curso</p>
-              <p className="font-display text-3xl font-bold text-gradient-premium">
-                USD ${course.price}
+              <p className="text-sm text-muted-foreground">Suscripción mensual</p>
+              <p className="font-display text-3xl font-bold text-primary">
+                ARS ${monthlyPrice.toLocaleString('es-AR')}
+                <span className="text-lg font-normal text-muted-foreground">/mes</span>
               </p>
             </div>
             <Button
               variant="premium"
               size="xl"
-              onClick={() => onUnlock(course.id)}
+              onClick={onSubscribe}
               className="gap-2"
             >
-              <Lock className="h-5 w-5" />
-              Desbloquear curso
+              <Crown className="h-5 w-5" />
+              Suscribirme ahora
             </Button>
           </div>
         </div>
