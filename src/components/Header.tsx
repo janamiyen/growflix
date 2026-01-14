@@ -1,16 +1,17 @@
+import growflixLogo from "@/assets/growflix-logo.jpg";
+
 const Header = () => {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo - Placeholder until user provides image */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">G</span>
-          </div>
-          <span className="font-display text-xl font-bold text-foreground tracking-wide">
-            GROWFLIX
-          </span>
-        </div>
+        {/* Logo */}
+        <a href="/" className="flex items-center">
+          <img 
+            src={growflixLogo} 
+            alt="GROWFLIX" 
+            className="h-8 w-auto"
+          />
+        </a>
 
         {/* Nav */}
         <nav className="hidden items-center gap-8 md:flex">

@@ -1,4 +1,5 @@
 import { Instagram, Mail } from "lucide-react";
+import growflixLogo from "@/assets/growflix-logo.jpg";
 
 const Footer = () => {
   return (
@@ -7,14 +8,13 @@ const Footer = () => {
         <div className="grid gap-8 md:grid-cols-3">
           {/* Logo & Description */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">G</span>
-              </div>
-              <span className="font-display text-xl font-bold text-foreground">
-                GROWFLIX
-              </span>
-            </div>
+            <a href="/" className="inline-block">
+              <img 
+                src={growflixLogo} 
+                alt="GROWFLIX" 
+                className="h-8 w-auto"
+              />
+            </a>
             <p className="text-sm text-muted-foreground">
               Tu academia de cultivo en constante actualización. 
               Aprendé mientras seas parte de Growflix.
