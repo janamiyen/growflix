@@ -1,4 +1,4 @@
-import growflixLockup from "@/assets/growflix-lockup.png";
+import growflixLogo from "@/assets/growflix-logo.png";
 
 const Header = () => {
   return (
@@ -8,7 +8,7 @@ const Header = () => {
         <div className="flex items-center">
           <a href="/" className="flex items-center px-2">
             <img
-              src={growflixLockup}
+              src={growflixLogo}
               alt="GROWFLIX"
               className="h-8 w-auto"
             />
