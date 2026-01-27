@@ -83,8 +83,9 @@ const AdminPayments = () => {
           ? new Date(existingGrant.expires_at) 
           : null;
         
-        // If current expiry is in the future, extend from there; otherwise from now
-        const base = currentExpiry && currentExpiry > now ? currentExpiry : now;
+        // Renewal: if grant exists and hasn't expired yet, extend from current expiry
+        const isRenewal = currentExpiry && currentExpiry > now;
+        const base = isRenewal ? currentExpiry : now;
         const newExpires = new Date(base);
         newExpires.setDate(newExpires.getDate() + 30);
 
@@ -120,8 +121,8 @@ const AdminPayments = () => {
         });
 
         toast({
-          title: existingGrant ? "¡Acceso renovado!" : "¡Acceso aprobado!",
-          description: `Acceso ${existingGrant ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede entrar con magic link.`,
+          title: isRenewal ? "¡Acceso renovado!" : "¡Acceso aprobado!",
+          description: `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede entrar con magic link.`,
         });
       } else {
         // Reject - only update payment_claims

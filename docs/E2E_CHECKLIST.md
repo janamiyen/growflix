@@ -35,13 +35,22 @@
 ### Test 5: Renovación de suscripción
 1. Usuario con grant vigente (ej: expira en 15 días)
 2. Admin aprueba nuevo claim para ese email
-3. **Esperado:** `expires_at` se extiende 30 días DESDE la fecha de expiración anterior (no desde now)
+3. **Esperado:** 
+   - `expires_at` se extiende 30 días DESDE la fecha de expiración anterior (no desde now)
    - Si expiraba el 15/02, ahora expira el 17/03
+   - Toast muestra "¡Acceso renovado!"
 
 ### Test 6: Grant revocado
 1. Manualmente: cambiar `status` a 'revoked' en DB
 2. Usuario intenta magic link
 3. **Esperado:** Redirige a `/sin-acceso`
+
+### Test 7: Grant expirado - nueva aprobación
+1. Usuario con grant expirado (expires_at en el pasado)
+2. Admin aprueba nuevo claim para ese email
+3. **Esperado:**
+   - `expires_at` = now() + 30 días (desde ahora, no desde el expiry pasado)
+   - Toast muestra "¡Acceso aprobado!"
 
 ## Rutas protegidas
 
@@ -53,10 +62,28 @@
 
 ## Estados del PaywallGate
 
-1. Loading → Muestra spinner
-2. No user → Redirige a `/acceso`
-3. User sin grant → Redirige a `/sin-acceso`
-4. User con grant activo → Muestra contenido
+1. `authLoading || accessLoading` → Muestra spinner
+2. `!user` → Redirige a `/acceso`
+3. `user && !hasAccess` → Redirige a `/sin-acceso`
+4. `user && hasAccess` → Muestra children
+
+**NUNCA retorna vacío**
+
+## Lógica de acceso (useAccessGrant)
+
+```typescript
+// Query access_grants donde:
+// - email = user.email.trim().toLowerCase()
+// - status = 'active'
+// - expires_at > now()
+```
+
+## RLS Policies (access_grants)
+
+| Operación | Política |
+|-----------|----------|
+| SELECT | Usuario puede ver SU grant (email match con JWT) |
+| INSERT/UPDATE/DELETE | Solo admin (`has_role(auth.uid(), 'admin')`) |
 
 ## Notas importantes
 
@@ -64,3 +91,4 @@
 - Los usuarios se crean automáticamente al usar magic link por primera vez
 - El acceso se controla 100% por `access_grants` (no por `subscriptions`)
 - El email siempre se normaliza: `email.trim().toLowerCase()`
+- El SELECT de RLS solo valida ownership; la validación de status/expiry ocurre en la app
