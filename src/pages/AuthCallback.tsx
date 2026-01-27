@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,55 +7,65 @@ import { ROUTES } from "@/lib/constants";
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const attemptsRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const maxAttempts = 10;
 
   useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 10;
-
     const checkSession = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        setError("Error al verificar la sesión");
-        return;
-      }
-
-      if (session?.user?.email) {
-        // Session established, check access grant
-        const normalizedEmail = session.user.email.trim().toLowerCase();
-
-        const { data: grant, error: grantError } = await supabase
-          .from("access_grants")
-          .select("email, status, expires_at")
-          .eq("email", normalizedEmail)
-          .eq("status", "active")
-          .gt("expires_at", new Date().toISOString())
-          .maybeSingle();
-
-        if (grantError) {
-          console.error("Error checking access:", grantError);
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setError("Error al verificar la sesión");
+          return;
         }
 
-        if (grant) {
-          // Has valid access
-          navigate(ROUTES.APP, { replace: true });
+        if (session?.user?.email) {
+          // Session established, check access grant
+          const normalizedEmail = session.user.email.trim().toLowerCase();
+
+          const { data: grant, error: grantError } = await supabase
+            .from("access_grants")
+            .select("email, status, expires_at")
+            .eq("email", normalizedEmail)
+            .eq("status", "active")
+            .gt("expires_at", new Date().toISOString())
+            .maybeSingle();
+
+          if (grantError) {
+            console.error("Error checking access:", grantError);
+          }
+
+          if (grant) {
+            navigate(ROUTES.APP, { replace: true });
+          } else {
+            navigate(ROUTES.NO_ACCESS, { replace: true });
+          }
         } else {
-          // No valid access
-          navigate("/sin-acceso", { replace: true });
+          // No session yet, retry
+          attemptsRef.current += 1;
+          if (attemptsRef.current < maxAttempts) {
+            timeoutRef.current = setTimeout(checkSession, 500);
+          } else {
+            setError("No se pudo establecer la sesión. Intentá nuevamente.");
+          }
         }
-      } else {
-        // No session yet, retry
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkSession, 500);
-        } else {
-          setError("No se pudo establecer la sesión. Intentá nuevamente.");
-        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setError("Error inesperado. Intentá nuevamente.");
       }
     };
 
     checkSession();
+
+    // Cleanup timeouts on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [navigate]);
 
   if (error) {

@@ -100,7 +100,11 @@ const PaymentClaim = () => {
               </h1>
               
               <p className="mt-4 text-muted-foreground">
-                Recibimos tu confirmación de pago. En breve te activamos el acceso y te enviamos un email con las instrucciones.
+                Recibimos tu confirmación de pago. Cuando lo aprobemos, te va a llegar un link por email para entrar.
+              </p>
+              
+              <p className="mt-2 text-sm text-muted-foreground">
+                No hace falta que crees una cuenta, el magic link te loguea automáticamente.
               </p>
 
               <a
