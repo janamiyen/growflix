@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, LogOut } from "lucide-react";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/lib/constants";
@@ -8,6 +8,12 @@ import growflixLockup from "@/assets/growflix-lockup.png";
 
 const NoAccess = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate(ROUTES.LOGIN, { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,9 +57,10 @@ const NoAccess = () => {
             </div>
 
             <button
-              onClick={() => signOut()}
-              className="mt-6 text-sm text-muted-foreground hover:text-foreground"
+              onClick={handleSignOut}
+              className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
+              <LogOut className="h-4 w-4" />
               Cerrar sesión
             </button>
           </div>
