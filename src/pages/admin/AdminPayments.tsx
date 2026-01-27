@@ -70,9 +70,23 @@ const AdminPayments = () => {
         // Normalize email
         const normalizedEmail = selectedClaim.email.trim().toLowerCase();
 
-        // Calculate expiry (30 days from now)
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30);
+        // Check for existing grant to support renewal
+        const { data: existingGrant } = await supabase
+          .from("access_grants")
+          .select("email, status, expires_at")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+
+        // Calculate new expiry with renewal logic
+        const now = new Date();
+        const currentExpiry = existingGrant?.expires_at 
+          ? new Date(existingGrant.expires_at) 
+          : null;
+        
+        // If current expiry is in the future, extend from there; otherwise from now
+        const base = currentExpiry && currentExpiry > now ? currentExpiry : now;
+        const newExpires = new Date(base);
+        newExpires.setDate(newExpires.getDate() + 30);
 
         // Upsert access grant
         const { error: grantError } = await supabase
@@ -80,7 +94,7 @@ const AdminPayments = () => {
           .upsert({
             email: normalizedEmail,
             status: "active",
-            expires_at: expiresAt.toISOString(),
+            expires_at: newExpires.toISOString(),
           }, {
             onConflict: "email",
           });
@@ -98,12 +112,19 @@ const AdminPayments = () => {
 
         if (claimError) throw claimError;
 
+        // Format expiry date for toast
+        const formattedExpiry = newExpires.toLocaleDateString("es-AR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+
         toast({
-          title: "¡Acceso aprobado!",
-          description: `Aprobado. El usuario podrá entrar con magic link usando su email.`,
+          title: existingGrant ? "¡Acceso renovado!" : "¡Acceso aprobado!",
+          description: `Acceso ${existingGrant ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede entrar con magic link.`,
         });
       } else {
-        // Reject
+        // Reject - only update payment_claims
         const { error } = await supabase
           .from("payment_claims")
           .update({

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Play, LogOut, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useAccessGrant } from "@/hooks/useAccessGrant";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
 
@@ -18,7 +18,7 @@ interface Course {
 
 const AppPage = () => {
   const { user, signOut } = useAuth();
-  const { subscription } = useSubscription();
+  const { grant } = useAccessGrant();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +69,7 @@ const AppPage = () => {
               <p className="text-muted-foreground">{user?.email}</p>
               <p className="flex items-center justify-end gap-1 text-xs text-primary">
                 <Crown className="h-3 w-3" />
-                Activo hasta {formatExpiryDate(subscription?.expires_at || null)}
+                Activo hasta {formatExpiryDate(grant?.expires_at || null)}
               </p>
             </div>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
