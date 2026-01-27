@@ -191,11 +191,12 @@ const AdminPayments = () => {
   };
 
   const revokeExpiredGrants = async () => {
-    const { error, count } = await supabase
+    const { data, error } = await supabase
       .from("access_grants")
       .update({ status: "revoked" })
       .eq("status", "active")
-      .lt("expires_at", new Date().toISOString());
+      .lt("expires_at", new Date().toISOString())
+      .select("id");
 
     if (error) {
       toast({
@@ -204,9 +205,10 @@ const AdminPayments = () => {
         variant: "destructive",
       });
     } else {
+      const count = data?.length ?? 0;
       toast({
         title: "Grants expirados revocados",
-        description: count ? `${count} grant(s) marcados como revocados.` : "No había grants expirados.",
+        description: count > 0 ? `${count} grant(s) marcados como revocados.` : "No había grants expirados.",
       });
     }
   };
