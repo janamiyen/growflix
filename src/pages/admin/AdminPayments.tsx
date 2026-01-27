@@ -67,69 +67,25 @@ const AdminPayments = () => {
 
     try {
       if (actionType === "approve") {
-        // Check if user exists
-        const { data: existingUser } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", selectedClaim.email)
-          .maybeSingle();
-
-        let userId: string;
-
-        if (!existingUser) {
-          // Create user via admin API - for now, we'll use a workaround
-          // In production, you'd call an edge function to create the user
-          // For MVP, admin creates account manually or user sets password on first login
-          
-          // Generate a temporary password
-          const tempPassword = Math.random().toString(36).slice(-12);
-          
-          const { data: authData, error: signUpError } = await supabase.auth.signUp({
-            email: selectedClaim.email,
-            password: tempPassword,
-            options: {
-              emailRedirectTo: window.location.origin,
-              data: {
-                full_name: selectedClaim.name,
-                whatsapp: selectedClaim.whatsapp,
-              },
-            },
-          });
-
-          if (signUpError) throw signUpError;
-          if (!authData.user) throw new Error("No se pudo crear el usuario");
-
-          userId = authData.user.id;
-
-          // Update profile with additional info
-          await supabase
-            .from("profiles")
-            .update({
-              full_name: selectedClaim.name,
-              whatsapp: selectedClaim.whatsapp,
-            })
-            .eq("id", userId);
-        } else {
-          userId = existingUser.id;
-        }
+        // Normalize email
+        const normalizedEmail = selectedClaim.email.trim().toLowerCase();
 
         // Calculate expiry (30 days from now)
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 30);
 
-        // Update or create subscription
-        const { error: subError } = await supabase
-          .from("subscriptions")
+        // Upsert access grant
+        const { error: grantError } = await supabase
+          .from("access_grants")
           .upsert({
-            user_id: userId,
+            email: normalizedEmail,
             status: "active",
-            started_at: new Date().toISOString(),
             expires_at: expiresAt.toISOString(),
           }, {
-            onConflict: "user_id",
+            onConflict: "email",
           });
 
-        if (subError) throw subError;
+        if (grantError) throw grantError;
 
         // Update claim status
         const { error: claimError } = await supabase
@@ -143,8 +99,8 @@ const AdminPayments = () => {
         if (claimError) throw claimError;
 
         toast({
-          title: "¡Suscripción activada!",
-          description: `El usuario ${selectedClaim.email} tiene acceso por 30 días.`,
+          title: "¡Acceso aprobado!",
+          description: `Aprobado. El usuario podrá entrar con magic link usando su email.`,
         });
       } else {
         // Reject
