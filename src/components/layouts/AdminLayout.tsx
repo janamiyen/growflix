@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BookOpen, CreditCard, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, CreditCard, Users, LogOut, Home } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
@@ -8,7 +8,6 @@ import growflixLockup from "@/assets/growflix-lockup.png";
 const navItems = [
   { to: ROUTES.ADMIN, icon: LayoutDashboard, label: "Dashboard", exact: true },
   { to: ROUTES.ADMIN_COURSES, icon: BookOpen, label: "Cursos", exact: false },
-  { to: ROUTES.ADMIN_PAYMENTS, icon: CreditCard, label: "Pagos", exact: false },
   { to: ROUTES.ADMIN_USERS, icon: Users, label: "Usuarios", exact: false },
 ];
 
@@ -56,7 +55,16 @@ const AdminLayout = () => {
           </ul>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4 space-y-2">
+          <Link to={ROUTES.HOME}>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-muted-foreground"
+            >
+              <Home className="h-5 w-5" />
+              Volver al sitio
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground"

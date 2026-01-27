@@ -1,6 +1,15 @@
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
+import { Shield } from "lucide-react";
 
 const Header = () => {
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
+
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4">
@@ -28,9 +37,16 @@ const Header = () => {
           </a>
         </nav>
 
-        {/* Right: Empty */}
-        <div className="flex items-center justify-end">
-          {/* Reserved for future use */}
+        {/* Right: Admin button */}
+        <div className="flex items-center justify-end gap-3">
+          {user && isAdmin && (
+            <Link to={ROUTES.ADMIN}>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Administrador
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
