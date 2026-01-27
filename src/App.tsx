@@ -11,6 +11,8 @@ import Courses from "./pages/Courses";
 import Checkout from "./pages/Checkout";
 import PaymentClaim from "./pages/PaymentClaim";
 import Login from "./pages/Login";
+import AuthCallback from "./pages/AuthCallback";
+import NoAccess from "./pages/NoAccess";
 import AppPage from "./pages/App";
 import CourseView from "./pages/CourseView";
 import NotFound from "./pages/NotFound";
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/pago" element={<PaymentClaim />} />
             <Route path="/acceso" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/sin-acceso" element={<NoAccess />} />
 
             {/* Protected Routes (Subscriber) */}
             <Route

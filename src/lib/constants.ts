@@ -14,6 +14,8 @@ export const ROUTES = {
   CHECKOUT: "/checkout",
   PAYMENT_CLAIM: "/pago",
   LOGIN: "/acceso",
+  AUTH_CALLBACK: "/auth/callback",
+  NO_ACCESS: "/sin-acceso",
   APP: "/app",
   COURSE_VIEW: "/app/curso",
   ADMIN: "/admin",
