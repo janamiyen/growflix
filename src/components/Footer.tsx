@@ -1,4 +1,6 @@
 import { Instagram, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/lib/constants";
 
 const Footer = () => {
   return (
@@ -23,13 +25,16 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#cursos" className="transition-colors hover:text-foreground">Cursos</a>
+                <Link to={ROUTES.COURSES} className="transition-colors hover:text-foreground">Cursos</Link>
               </li>
               <li>
                 <a href="#nosotros" className="transition-colors hover:text-foreground">Nosotros</a>
               </li>
               <li>
                 <a href="#contacto" className="transition-colors hover:text-foreground">Contacto</a>
+              </li>
+              <li>
+                <Link to={ROUTES.LOGIN} className="transition-colors hover:text-foreground">Acceso</Link>
               </li>
             </ul>
           </div>
