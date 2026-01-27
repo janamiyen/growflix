@@ -190,14 +190,42 @@ const AdminPayments = () => {
     }
   };
 
+  const revokeExpiredGrants = async () => {
+    const { error, count } = await supabase
+      .from("access_grants")
+      .update({ status: "revoked" })
+      .eq("status", "active")
+      .lt("expires_at", new Date().toISOString());
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron revocar los grants expirados.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Grants expirados revocados",
+        description: count ? `${count} grant(s) marcados como revocados.` : "No había grants expirados.",
+      });
+    }
+  };
+
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-foreground">
-        Pagos
-      </h1>
-      <p className="mt-2 text-muted-foreground">
-        Gestionar claims de pago y activar suscripciones
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-foreground">
+            Pagos
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Gestionar claims de pago y activar suscripciones
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={revokeExpiredGrants}>
+          Revocar expirados
+        </Button>
+      </div>
 
       {/* Claims Table */}
       <div className="mt-8 rounded-xl border border-border">
