@@ -234,6 +234,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_payment_claim: {
+        Args: {
+          _email: string
+          _name: string
+          _receipt_url?: string
+          _whatsapp: string
+        }
+        Returns: string
+      }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {

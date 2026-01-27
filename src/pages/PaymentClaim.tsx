@@ -63,12 +63,12 @@ const PaymentClaim = () => {
         receiptUrl = fileName;
       }
 
-      // Create payment claim
-      const { error } = await supabase.from("payment_claims").insert({
-        email: email.trim().toLowerCase(),
-        whatsapp: whatsapp.trim(),
-        name: name.trim() || null,
-        receipt_url: receiptUrl,
+      // Create payment claim via secure RPC
+      const { error } = await supabase.rpc("create_payment_claim", {
+        _name: name.trim() || "",
+        _email: email.trim(),
+        _whatsapp: whatsapp.trim(),
+        _receipt_url: receiptUrl,
       });
 
       if (error) throw error;
