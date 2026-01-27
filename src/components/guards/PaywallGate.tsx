@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useAccessGrant } from "@/hooks/useAccessGrant";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
@@ -11,9 +11,9 @@ interface PaywallGateProps {
 
 const PaywallGate = ({ children }: PaywallGateProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { isActive, loading: subLoading } = useSubscription();
+  const { hasAccess, loading: accessLoading } = useAccessGrant();
 
-  if (authLoading || subLoading) {
+  if (authLoading || accessLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -25,8 +25,8 @@ const PaywallGate = ({ children }: PaywallGateProps) => {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
-  if (!isActive) {
-    return <Navigate to={ROUTES.CHECKOUT} replace />;
+  if (!hasAccess) {
+    return <Navigate to={ROUTES.NO_ACCESS} replace />;
   }
 
   return <>{children}</>;
