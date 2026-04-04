@@ -113,6 +113,14 @@ const AdminPayments = () => {
 
         if (claimError) throw claimError;
 
+        // Send magic link so the user can log in
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: normalizedEmail,
+          options: {
+            emailRedirectTo: window.location.origin + "/auth/callback",
+          },
+        });
+
         // Format expiry date for toast
         const formattedExpiry = newExpires.toLocaleDateString("es-AR", {
           day: "2-digit",
@@ -122,7 +130,9 @@ const AdminPayments = () => {
 
         toast({
           title: isRenewal ? "¡Acceso renovado!" : "¡Acceso aprobado!",
-          description: `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede entrar con magic link.`,
+          description: otpError
+            ? `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}, pero no se pudo enviar el magic link (${otpError.message}). Envialo manualmente.`
+            : `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}. Magic link enviado a ${normalizedEmail}.`,
         });
       } else {
         // Reject - only update payment_claims

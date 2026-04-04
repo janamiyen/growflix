@@ -2,7 +2,7 @@
 export const MONTHLY_PRICE = 9999;
 
 // MercadoPago payment link
-export const MERCADOPAGO_LINK = "https://mpago.la/2qrxfN6";
+export const MERCADOPAGO_LINK = "https://mpago.la/1yn8dAB";
 
 // Admin WhatsApp for support
 export const ADMIN_WHATSAPP = "5491123456789"; // Update this with actual number

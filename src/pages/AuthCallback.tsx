@@ -23,9 +23,22 @@ const AuthCallback = () => {
         }
 
         if (session?.user?.email) {
-          // Session established, check access grant
           const normalizedEmail = session.user.email.trim().toLowerCase();
 
+          // Check if user is admin
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+
+          if (roleData) {
+            navigate(ROUTES.APP, { replace: true });
+            return;
+          }
+
+          // Check access grant
           const { data: grant, error: grantError } = await supabase
             .from("access_grants")
             .select("email, status, expires_at")
