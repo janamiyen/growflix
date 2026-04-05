@@ -5,7 +5,7 @@ export const MONTHLY_PRICE = 9999;
 export const MERCADOPAGO_LINK = "https://mpago.la/1yn8dAB";
 
 // Admin WhatsApp for support
-export const ADMIN_WHATSAPP = "5491123456789"; // Update this with actual number
+export const ADMIN_WHATSAPP = "5491165361856";
 
 // App routes
 export const ROUTES = {

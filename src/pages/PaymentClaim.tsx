@@ -94,32 +94,38 @@ const PaymentClaim = () => {
           <div className="mx-auto max-w-lg text-center">
             <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-8">
               <CheckCircle className="mx-auto h-16 w-16 text-primary" />
-              
+
               <h1 className="mt-6 font-display text-3xl font-bold text-foreground">
-                ¡Listo!
+                ¡Bienvenido/a a Growflix!
               </h1>
-              
+
               <p className="mt-4 text-muted-foreground">
-                Recibimos tu confirmación de pago. Cuando lo aprobemos, te va a llegar un link por email para entrar.
+                Gracias por ser parte de este hermoso mundo. Recibimos tu confirmación de pago y estamos procesándola.
               </p>
-              
-              <p className="mt-2 text-sm text-muted-foreground">
-                No hace falta que crees una cuenta, el magic link te loguea automáticamente.
+
+              <p className="mt-2 text-muted-foreground">
+                Cuando lo aprobemos, te va a llegar un link por email para entrar. No hace falta que crees una cuenta, el link te loguea automáticamente.
               </p>
+
+              <div className="mt-6 rounded-xl bg-background/50 p-4 text-left text-sm text-muted-foreground space-y-2">
+                <p className="font-medium text-foreground">Pasos a seguir:</p>
+                <p>1. Revisá tu email (incluyendo spam) — te va a llegar un link de acceso.</p>
+                <p>2. Si en 24hs no recibiste nada, escribinos por WhatsApp así lo solucionamos.</p>
+              </div>
 
               <a
                 href={`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent("Hola! Acabo de pagar la suscripción a Growflix. Mi email es: " + email)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2"
+                className="mt-6 inline-flex items-center gap-2"
               >
                 <Button variant="outline" size="lg" className="gap-2">
                   <MessageCircle className="h-5 w-5" />
-                  Hablar por WhatsApp
+                  Escribinos por WhatsApp
                 </Button>
               </a>
 
-              <p className="mt-6 text-sm text-muted-foreground">
+              <p className="mt-4 text-xs text-muted-foreground">
                 Normalmente activamos cuentas en menos de 24 horas.
               </p>
             </div>
