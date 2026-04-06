@@ -34,7 +34,7 @@ const AuthCallback = () => {
             .maybeSingle();
 
           if (roleData) {
-            navigate(ROUTES.APP, { replace: true });
+            navigate(ROUTES.ADMIN, { replace: true });
             return;
           }
 

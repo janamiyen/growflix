@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Play, LogOut, Crown } from "lucide-react";
+import { Play, LogOut, Crown, Menu, X, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccessGrant } from "@/hooks/useAccessGrant";
+import { useUserRole } from "@/hooks/useUserRole";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
 
@@ -19,8 +20,10 @@ interface Course {
 const AppPage = () => {
   const { user, signOut } = useAuth();
   const { grant } = useAccessGrant();
+  const { isAdmin } = useUserRole();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -64,19 +67,71 @@ const AppPage = () => {
             <img src={growflixLockup} alt="GROWFLIX" className="h-8 w-auto" />
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden text-right text-sm sm:block">
+          {/* Desktop */}
+          <div className="hidden items-center gap-4 md:flex">
+            <div className="text-right text-sm">
               <p className="text-muted-foreground">{user?.email}</p>
               <p className="flex items-center justify-end gap-1 text-xs text-primary">
                 <Crown className="h-3 w-3" />
                 Activo hasta {formatExpiryDate(grant?.expires_at || null)}
               </p>
             </div>
+            {isAdmin && (
+              <Link to={ROUTES.ADMIN}>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Mobile hamburger */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
+
+        {/* Mobile dropdown */}
+        {menuOpen && (
+          <nav className="border-t border-border/50 bg-background/95 backdrop-blur-md px-4 pb-4 pt-3 md:hidden">
+            <div className="mb-3 text-sm">
+              <p className="text-muted-foreground">{user?.email}</p>
+              <p className="flex items-center gap-1 text-xs text-primary">
+                <Crown className="h-3 w-3" />
+                Activo hasta {formatExpiryDate(grant?.expires_at || null)}
+              </p>
+            </div>
+
+            <div className="space-y-1 border-t border-border/50 pt-3">
+              {isAdmin && (
+                <Link
+                  to={ROUTES.ADMIN}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+                >
+                  <Shield className="h-5 w-5" />
+                  Panel Admin
+                </Link>
+              )}
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                <LogOut className="h-5 w-5" />
+                Cerrar sesión
+              </button>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Main Content */}
