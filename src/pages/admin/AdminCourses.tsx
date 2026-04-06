@@ -200,7 +200,7 @@ const AdminCourses = () => {
       </div>
 
       {/* Courses Table */}
-      <div className="mt-8 rounded-xl border border-border">
+      <div className="mt-8 rounded-xl border border-border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
