@@ -1,15 +1,32 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { ROUTES } from "@/lib/constants";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [isRecovery, setIsRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
+      // Check URL hash for recovery event
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get("type");
+
+      if (type === "recovery") {
+        setIsRecovery(true);
+        return;
+      }
+
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
@@ -54,6 +71,79 @@ const AuthCallback = () => {
 
     handleCallback();
   }, [navigate]);
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Contraseña muy corta",
+        description: "Mínimo 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar la contraseña.",
+        variant: "destructive",
+      });
+      setSaving(false);
+      return;
+    }
+
+    toast({
+      title: "Contraseña actualizada",
+      description: "Ya podés ingresar con tu nueva contraseña.",
+    });
+    navigate(ROUTES.LOGIN, { replace: true });
+  };
+
+  if (isRecovery) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8">
+          <h1 className="font-display text-2xl font-bold text-foreground text-center">
+            Nueva contraseña
+          </h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Elegí tu nueva contraseña para ingresar
+          </p>
+
+          <form onSubmit={handleSetPassword} className="mt-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Contraseña</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar contraseña"
+              )}
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

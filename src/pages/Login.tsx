@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
 
@@ -14,10 +15,42 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleResetPassword = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      toast({
+        title: "Ingresá tu email",
+        description: "Escribí tu email arriba y después hacé clic en 'Olvidé mi contraseña'.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: window.location.origin + ROUTES.AUTH_CALLBACK,
+    });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar el email.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Email enviado",
+        description: "Revisá tu casilla para restablecer tu contraseña.",
+      });
+    }
+    setResetLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +156,16 @@ const Login = () => {
                   required
                   minLength={isRegister ? 6 : undefined}
                 />
+                {!isRegister && (
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={resetLoading}
+                    className="text-xs text-muted-foreground hover:text-primary hover:underline"
+                  >
+                    {resetLoading ? "Enviando..." : "Olvidé mi contraseña"}
+                  </button>
+                )}
               </div>
 
               <Button
