@@ -181,7 +181,7 @@ const AdminDashboard = () => {
 
         toast({
           title: isRenewal ? "¡Acceso renovado!" : "¡Acceso aprobado!",
-          description: `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede entrar con magic link.`,
+          description: `Acceso ${isRenewal ? "renovado" : "habilitado"} hasta ${formattedExpiry}. El usuario puede ingresar con su email y contraseña.`,
         });
       } else {
         const { error } = await supabase
@@ -466,9 +466,8 @@ const AdminDashboard = () => {
         <Card className="mb-4 border-primary/20 bg-primary/5">
           <CardContent className="py-3">
             <p className="text-sm text-foreground">
-              💡 <strong>Al aprobar</strong>, el usuario podrá entrar desde{" "}
-              <code className="bg-muted px-1 rounded">/acceso</code> usando su email.
-              El sistema envía automáticamente el magic link.
+              💡 <strong>Al aprobar</strong>, el usuario podrá ingresar desde{" "}
+              <code className="bg-muted px-1 rounded">/acceso</code> con su email y contraseña.
             </p>
           </CardContent>
         </Card>

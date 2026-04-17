@@ -2,19 +2,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Mail, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,67 +25,54 @@ const Login = () => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        emailRedirectTo: window.location.origin + ROUTES.AUTH_CALLBACK,
-      },
-    });
+    if (isRegister) {
+      if (password.length < 6) {
+        toast({
+          title: "Contraseña muy corta",
+          description: "La contraseña debe tener al menos 6 caracteres.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
+      const { error } = await signUp(normalizedEmail, password);
+
+      if (error) {
+        toast({
+          title: "Error al crear cuenta",
+          description: error.message || "No se pudo crear la cuenta.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       toast({
-        title: "Error",
-        description: error.message || "No se pudo enviar el magic link",
-        variant: "destructive",
+        title: "Cuenta creada",
+        description: "Ya podés iniciar sesión con tu email y contraseña.",
       });
+      setIsRegister(false);
+      setPassword("");
       setLoading(false);
-      return;
+    } else {
+      const { error } = await signIn(normalizedEmail, password);
+
+      if (error) {
+        toast({
+          title: "Error al iniciar sesión",
+          description: error.message === "Invalid login credentials"
+            ? "Email o contraseña incorrectos."
+            : error.message || "No se pudo iniciar sesión.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      navigate(ROUTES.APP, { replace: true });
     }
-
-    setSent(true);
-    setLoading(false);
   };
-
-  if (sent) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-
-        <main className="container mx-auto px-4 pt-24 pb-16">
-          <div className="mx-auto max-w-sm">
-            <div className="mb-8 text-center">
-              <img
-                src={growflixLockup}
-                alt="GROWFLIX"
-                className="mx-auto h-12 w-auto"
-              />
-            </div>
-
-            <div className="rounded-2xl border border-border bg-card p-8 text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <CheckCircle className="h-8 w-8 text-primary" />
-              </div>
-
-              <h1 className="font-display text-2xl font-bold text-foreground">
-                ¡Listo!
-              </h1>
-
-              <p className="mt-4 text-muted-foreground">
-                Revisá tu email <span className="font-medium text-foreground">{email}</span> y hacé clic en el enlace para ingresar.
-              </p>
-
-              <button
-                onClick={() => setSent(false)}
-                className="mt-6 text-sm text-primary hover:underline"
-              >
-                Usar otro email
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,14 +90,16 @@ const Login = () => {
 
           <div className="rounded-2xl border border-border bg-card p-8">
             <h1 className="font-display text-2xl font-bold text-foreground text-center">
-              Iniciar sesión
+              {isRegister ? "Crear cuenta" : "Iniciar sesión"}
             </h1>
 
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              Ingresá tu email y te enviamos un enlace de acceso
+              {isRegister
+                ? "Registrate para acceder a los cursos"
+                : "Ingresá para ver tus cursos"}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-8 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -120,6 +112,19 @@ const Login = () => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={isRegister ? "Mínimo 6 caracteres" : "Tu contraseña"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={isRegister ? 6 : undefined}
+                />
+              </div>
+
               <Button
                 type="submit"
                 className="w-full"
@@ -128,21 +133,49 @@ const Login = () => {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Enviando...
+                    {isRegister ? "Creando cuenta..." : "Ingresando..."}
+                  </>
+                ) : isRegister ? (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Crear cuenta
                   </>
                 ) : (
                   <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Enviar magic link
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Ingresar
                   </>
                 )}
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              ¿No tenés cuenta?{" "}
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              {isRegister ? (
+                <>
+                  ¿Ya tenés cuenta?{" "}
+                  <button
+                    onClick={() => { setIsRegister(false); setPassword(""); }}
+                    className="text-primary hover:underline"
+                  >
+                    Iniciá sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  ¿No tenés cuenta?{" "}
+                  <button
+                    onClick={() => { setIsRegister(true); setPassword(""); }}
+                    className="text-primary hover:underline"
+                  >
+                    Registrate
+                  </button>
+                </>
+              )}
+            </div>
+
+            <p className="mt-4 text-center text-sm text-muted-foreground">
               <Link to={ROUTES.CHECKOUT} className="text-primary hover:underline">
-                Suscribite
+                Ver suscripciones
               </Link>
             </p>
           </div>
