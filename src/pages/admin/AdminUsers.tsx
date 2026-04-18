@@ -40,12 +40,21 @@ interface AccessGrant {
   created_at: string;
 }
 
+interface AuthUser {
+  id: string;
+  email: string | undefined;
+  created_at: string;
+  email_confirmed_at: string | null;
+  last_sign_in_at: string | null;
+}
+
 type UserStatus =
   | "active"
   | "expired"
   | "revoked"
   | "pending"
   | "rejected"
+  | "registered"
   | "none";
 
 interface UnifiedUser {
@@ -55,12 +64,17 @@ interface UnifiedUser {
   status: UserStatus;
   expires_at: string | null;
   first_seen: string;
+  last_sign_in_at: string | null;
+  email_confirmed: boolean;
+  in_auth: boolean;
   latest_claim: PaymentClaim | null;
 }
 
 const AdminUsers = () => {
   const [claims, setClaims] = useState<PaymentClaim[]>([]);
   const [grants, setGrants] = useState<AccessGrant[]>([]);
+  const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
+  const [authUsersError, setAuthUsersError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [detailsClaim, setDetailsClaim] = useState<PaymentClaim | null>(null);
@@ -71,7 +85,7 @@ const AdminUsers = () => {
     const fetchAll = async () => {
       setLoading(true);
 
-      const [claimsRes, grantsRes] = await Promise.all([
+      const [claimsRes, grantsRes, authRes] = await Promise.all([
         supabase
           .from("payment_claims")
           .select("*")
@@ -80,6 +94,7 @@ const AdminUsers = () => {
           .from("access_grants")
           .select("*")
           .order("created_at", { ascending: false }),
+        supabase.functions.invoke<{ users: AuthUser[] }>("list-users"),
       ]);
 
       if (claimsRes.error) {
@@ -87,6 +102,16 @@ const AdminUsers = () => {
       }
       if (grantsRes.error) {
         console.error("Error fetching grants:", grantsRes.error);
+      }
+      if (authRes.error) {
+        console.error("Error fetching auth users:", authRes.error);
+        setAuthUsersError(
+          "No se pudo cargar la lista de usuarios registrados. Desplegá la Edge Function 'list-users' para ver también quienes se registraron sin pagar."
+        );
+        setAuthUsers([]);
+      } else {
+        setAuthUsersError(null);
+        setAuthUsers(authRes.data?.users ?? []);
       }
 
       setClaims(claimsRes.data || []);
@@ -118,6 +143,9 @@ const AdminUsers = () => {
         status,
         expires_at: g.expires_at,
         first_seen: g.created_at,
+        last_sign_in_at: null,
+        email_confirmed: false,
+        in_auth: false,
         latest_claim: null,
       });
     });
@@ -150,7 +178,38 @@ const AdminUsers = () => {
           status,
           expires_at: null,
           first_seen: c.created_at,
+          last_sign_in_at: null,
+          email_confirmed: false,
+          in_auth: false,
           latest_claim: c,
+        });
+      }
+    });
+
+    authUsers.forEach((a) => {
+      if (!a.email) return;
+      const email = a.email.trim().toLowerCase();
+      const existing = byEmail.get(email);
+
+      if (existing) {
+        existing.in_auth = true;
+        existing.email_confirmed = !!a.email_confirmed_at;
+        existing.last_sign_in_at = a.last_sign_in_at;
+        if (new Date(a.created_at) < new Date(existing.first_seen)) {
+          existing.first_seen = a.created_at;
+        }
+      } else {
+        byEmail.set(email, {
+          email,
+          name: null,
+          whatsapp: null,
+          status: "registered",
+          expires_at: null,
+          first_seen: a.created_at,
+          last_sign_in_at: a.last_sign_in_at,
+          email_confirmed: !!a.email_confirmed_at,
+          in_auth: true,
+          latest_claim: null,
         });
       }
     });
@@ -158,10 +217,11 @@ const AdminUsers = () => {
     const order: Record<UserStatus, number> = {
       active: 0,
       pending: 1,
-      expired: 2,
-      revoked: 3,
-      rejected: 4,
-      none: 5,
+      registered: 2,
+      expired: 3,
+      revoked: 4,
+      rejected: 5,
+      none: 6,
     };
 
     return Array.from(byEmail.values()).sort((a, b) => {
@@ -172,7 +232,7 @@ const AdminUsers = () => {
         new Date(b.first_seen).getTime() - new Date(a.first_seen).getTime()
       );
     });
-  }, [claims, grants]);
+  }, [claims, grants, authUsers]);
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -230,6 +290,12 @@ const AdminUsers = () => {
             🟡 Pendiente
           </Badge>
         );
+      case "registered":
+        return (
+          <Badge variant="outline" className="border-blue-500 text-blue-500">
+            🔵 Registrado
+          </Badge>
+        );
       case "expired":
         return <Badge variant="destructive">🔴 Expirado</Badge>;
       case "revoked":
@@ -243,6 +309,7 @@ const AdminUsers = () => {
 
   const activeCount = users.filter((u) => u.status === "active").length;
   const pendingCount = users.filter((u) => u.status === "pending").length;
+  const registeredCount = users.filter((u) => u.status === "registered").length;
 
   return (
     <div className="space-y-6">
@@ -253,8 +320,13 @@ const AdminUsers = () => {
         <p className="mt-2 text-muted-foreground">
           {loading
             ? "Cargando..."
-            : `${users.length} usuarios totales · ${activeCount} activos · ${pendingCount} pendientes`}
+            : `${users.length} usuarios totales · ${activeCount} activos · ${pendingCount} pendientes · ${registeredCount} registrados sin pagar`}
         </p>
+        {authUsersError && (
+          <div className="mt-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm text-yellow-600 dark:text-yellow-400">
+            ⚠️ {authUsersError}
+          </div>
+        )}
       </div>
 
       <div className="relative max-w-md">
