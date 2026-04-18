@@ -81,7 +81,7 @@ const Login = () => {
 
       toast({
         title: "Cuenta creada",
-        description: "Ya podés iniciar sesión con tu email y contraseña.",
+        description: "Te enviamos un email de confirmación. Revisá tu casilla (y spam) y confirmá para poder ingresar.",
       });
       setIsRegister(false);
       setPassword("");
@@ -94,6 +94,8 @@ const Login = () => {
           title: "Error al iniciar sesión",
           description: error.message === "Invalid login credentials"
             ? "Email o contraseña incorrectos."
+            : error.message === "Email not confirmed"
+            ? "Revisá tu email y confirmá tu cuenta antes de ingresar."
             : error.message || "No se pudo iniciar sesión.",
           variant: "destructive",
         });
