@@ -33,9 +33,7 @@ const Login = () => {
     }
 
     setResetLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: window.location.origin + ROUTES.AUTH_CALLBACK,
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
 
     if (error) {
       toast({
