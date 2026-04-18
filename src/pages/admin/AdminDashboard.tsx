@@ -78,7 +78,22 @@ const AdminDashboard = () => {
   const [selectedClaim, setSelectedClaim] = useState<PaymentClaim | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [detailsClaim, setDetailsClaim] = useState<PaymentClaim | null>(null);
+  const [detailsEmail, setDetailsEmail] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const viewDetails = (email: string) => {
+    const normalized = email.trim().toLowerCase();
+    const match = claims
+      .filter((c) => c.email.trim().toLowerCase() === normalized)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
+
+    setDetailsEmail(email);
+    setDetailsClaim(match ?? null);
+  };
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -665,6 +680,14 @@ const AdminDashboard = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => viewDetails(grant.email)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver detalles
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => renewGrant(grant.email)}
                             disabled={processing === grant.email}
                           >
@@ -743,6 +766,14 @@ const AdminDashboard = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => viewDetails(grant.email)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver detalles
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => renewGrant(grant.email)}
                           disabled={processing === grant.email}
                         >
@@ -814,6 +845,114 @@ const AdminDashboard = () => {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
               {actionType === "approve" ? "Aprobar" : "Rechazar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Details Dialog */}
+      <Dialog
+        open={!!detailsEmail}
+        onOpenChange={() => {
+          setDetailsEmail(null);
+          setDetailsClaim(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalles del usuario</DialogTitle>
+            <DialogDescription>
+              Información del comprobante de pago más reciente.
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailsClaim ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Nombre
+                </p>
+                <p className="text-foreground">{detailsClaim.name || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Email de la solicitud
+                </p>
+                <p className="text-foreground break-all">{detailsClaim.email}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  WhatsApp
+                </p>
+                <a
+                  href={`https://wa.me/${detailsClaim.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {detailsClaim.whatsapp}
+                </a>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Fecha de la solicitud
+                </p>
+                <p className="text-foreground">
+                  {formatDateTime(detailsClaim.created_at)}
+                </p>
+              </div>
+              {detailsClaim.admin_note && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Nota del admin
+                  </p>
+                  <p className="text-foreground whitespace-pre-wrap">
+                    {detailsClaim.admin_note}
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
+                  Comprobante
+                </p>
+                {detailsClaim.receipt_url ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => getReceiptUrl(detailsClaim.receipt_url!)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver comprobante
+                  </Button>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Sin comprobante adjunto
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground">
+                No se encontró una solicitud de pago asociada a{" "}
+                <span className="text-foreground font-medium break-all">
+                  {detailsEmail}
+                </span>
+                . Probablemente el acceso fue otorgado manualmente sin pasar por
+                el formulario de pago.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDetailsEmail(null);
+                setDetailsClaim(null);
+              }}
+            >
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>
