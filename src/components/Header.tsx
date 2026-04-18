@@ -1,16 +1,30 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAccessGrant } from "@/hooks/useAccessGrant";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
-import { Shield, Menu, X, LogIn } from "lucide-react";
+import { Shield, Menu, X, LogIn, LogOut, PlayCircle } from "lucide-react";
 
 const Header = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isAdmin } = useUserRole();
+  const { hasAccess } = useAccessGrant();
+  const { isActive: hasSubscription } = useSubscription();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const hasContentAccess = hasAccess || hasSubscription || isAdmin;
+  const coursesLink = hasContentAccess ? ROUTES.APP : ROUTES.COURSES;
+
+  const handleLogout = async () => {
+    await signOut();
+    setMenuOpen(false);
+    navigate(ROUTES.HOME);
+  };
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
@@ -26,12 +40,14 @@ const Header = () => {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-8 md:flex">
-          <Link to={ROUTES.COURSES} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link to={coursesLink} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Cursos
           </Link>
-          <Link to={ROUTES.CHECKOUT} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-            Suscripciones
-          </Link>
+          {!hasContentAccess && (
+            <Link to={ROUTES.CHECKOUT} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              Suscripciones
+            </Link>
+          )}
         </nav>
 
         {/* Desktop right side */}
@@ -43,6 +59,25 @@ const Header = () => {
                 Administrador
               </Button>
             </Link>
+          )}
+          {user && hasContentAccess && !isAdmin && (
+            <Link to={ROUTES.APP}>
+              <Button variant="default" size="sm" className="gap-2">
+                <PlayCircle className="h-4 w-4" />
+                Mis cursos
+              </Button>
+            </Link>
+          )}
+          {user && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar sesión
+            </Button>
           )}
           {!user && (
             <Link to={ROUTES.LOGIN}>
@@ -68,25 +103,32 @@ const Header = () => {
       {/* Mobile dropdown */}
       {menuOpen && (
         <nav className="border-t border-border/50 bg-background/95 backdrop-blur-md px-4 pb-4 pt-2 md:hidden">
+          {user && (
+            <p className="px-3 pb-2 text-xs text-muted-foreground break-all">
+              {user.email}
+            </p>
+          )}
           <ul className="space-y-1">
             <li>
               <Link
-                to={ROUTES.COURSES}
+                to={coursesLink}
                 onClick={() => setMenuOpen(false)}
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 Cursos
               </Link>
             </li>
-            <li>
-              <Link
-                to={ROUTES.CHECKOUT}
-                onClick={() => setMenuOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
-              >
-                Suscripciones
-              </Link>
-            </li>
+            {!hasContentAccess && (
+              <li>
+                <Link
+                  to={ROUTES.CHECKOUT}
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+                >
+                  Suscripciones
+                </Link>
+              </li>
+            )}
             {!user && (
               <li>
                 <Link
@@ -100,16 +142,35 @@ const Header = () => {
             )}
           </ul>
 
-          {user && isAdmin && (
-            <div className="mt-3 border-t border-border/50 pt-3">
+          <div className="mt-3 space-y-2 border-t border-border/50 pt-3">
+            {user && isAdmin && (
               <Link to={ROUTES.ADMIN} onClick={() => setMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="w-full gap-2">
                   <Shield className="h-4 w-4" />
                   Administrador
                 </Button>
               </Link>
-            </div>
-          )}
+            )}
+            {user && hasContentAccess && !isAdmin && (
+              <Link to={ROUTES.APP} onClick={() => setMenuOpen(false)}>
+                <Button variant="default" size="sm" className="w-full gap-2">
+                  <PlayCircle className="h-4 w-4" />
+                  Mis cursos
+                </Button>
+              </Link>
+            )}
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="w-full gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Cerrar sesión
+              </Button>
+            )}
+          </div>
         </nav>
       )}
     </header>

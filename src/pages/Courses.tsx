@@ -6,6 +6,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTES, MONTHLY_PRICE } from "@/lib/constants";
+import { useAccessGrant } from "@/hooks/useAccessGrant";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // Import fallback images
 import course1 from "@/assets/course-1.jpg";
@@ -27,6 +30,10 @@ interface Course {
 const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const { hasAccess } = useAccessGrant();
+  const { isActive: hasSubscription } = useSubscription();
+  const { isAdmin } = useUserRole();
+  const hasContentAccess = hasAccess || hasSubscription || isAdmin;
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -101,13 +108,24 @@ const Courses = () => {
                       alt={course.title}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
                     />
-                    {/* Locked Overlay */}
+                    {/* Hover Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 transition-opacity group-hover:opacity-100">
                       <div className="text-center">
-                        <Lock className="mx-auto h-8 w-8 text-primary" />
-                        <p className="mt-2 text-sm font-medium text-foreground">
-                          Solo para suscriptores
-                        </p>
+                        {hasContentAccess ? (
+                          <>
+                            <Play className="mx-auto h-8 w-8 text-primary" />
+                            <p className="mt-2 text-sm font-medium text-foreground">
+                              Ver curso
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="mx-auto h-8 w-8 text-primary" />
+                            <p className="mt-2 text-sm font-medium text-foreground">
+                              Solo para suscriptores
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -131,7 +149,11 @@ const Courses = () => {
 
                   {/* CTA on hover */}
                   <Link
-                    to={ROUTES.CHECKOUT}
+                    to={
+                      hasContentAccess
+                        ? `${ROUTES.COURSE_VIEW}/${course.slug}`
+                        : ROUTES.CHECKOUT
+                    }
                     className="absolute inset-0"
                     aria-label={`Ver ${course.title}`}
                   />
@@ -192,35 +214,37 @@ const Courses = () => {
         </div>
       </section>
 
-      {/* Subscription CTA */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-2xl rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center sm:p-12">
-            <Crown className="mx-auto h-12 w-12 text-primary" />
-            <h2 className="mt-6 font-display text-3xl font-bold text-foreground">
-              Suscribite a Growflix
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Accedé a todos los cursos, actualizaciones constantes y nueva formación cada mes.
-            </p>
-            <div className="mt-6">
-              <p className="font-display text-4xl font-bold text-primary">
-                ARS ${MONTHLY_PRICE.toLocaleString('es-AR')}
-                <span className="text-lg font-normal text-muted-foreground">/mes</span>
+      {/* Subscription CTA — oculto para usuarios con acceso */}
+      {!hasContentAccess && (
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-2xl rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center sm:p-12">
+              <Crown className="mx-auto h-12 w-12 text-primary" />
+              <h2 className="mt-6 font-display text-3xl font-bold text-foreground">
+                Suscribite a Growflix
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Accedé a todos los cursos, actualizaciones constantes y nueva formación cada mes.
+              </p>
+              <div className="mt-6">
+                <p className="font-display text-4xl font-bold text-primary">
+                  ARS ${MONTHLY_PRICE.toLocaleString('es-AR')}
+                  <span className="text-lg font-normal text-muted-foreground">/mes</span>
+                </p>
+              </div>
+              <Link to={ROUTES.CHECKOUT}>
+                <Button variant="premium" size="xl" className="mt-8 gap-2">
+                  <Crown className="h-5 w-5" />
+                  Comenzar ahora
+                </Button>
+              </Link>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Pagá con MercadoPago. Cancelá cuando quieras.
               </p>
             </div>
-            <Link to={ROUTES.CHECKOUT}>
-              <Button variant="premium" size="xl" className="mt-8 gap-2">
-                <Crown className="h-5 w-5" />
-                Comenzar ahora
-              </Button>
-            </Link>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Pagá con MercadoPago. Cancelá cuando quieras.
-            </p>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </div>
