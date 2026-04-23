@@ -80,12 +80,10 @@ const Login = () => {
       }
 
       toast({
-        title: "Cuenta creada",
-        description: "Te enviamos un email de confirmación. Revisá tu casilla (y spam) y confirmá para poder ingresar.",
+        title: "¡Bienvenido a Growflix!",
+        description: "Tu cuenta fue creada. Ya podés explorar los cursos.",
       });
-      setIsRegister(false);
-      setPassword("");
-      setLoading(false);
+      navigate(ROUTES.APP, { replace: true });
     } else {
       const { error } = await signIn(normalizedEmail, password);
 
