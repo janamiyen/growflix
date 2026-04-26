@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Play, CheckCircle, Lock, Loader2 } from "lucide-react";
+import { ChevronLeft, Play, CheckCircle, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { ROUTES } from "@/lib/constants";
 import growflixLockup from "@/assets/growflix-lockup.png";
+import LessonComments from "@/components/LessonComments";
+
+const CONGRATS_MESSAGES = [
+  "¡Muy bien! Ya casi estás en modo experto 🌱",
+  "¡Genial! Otra lección menos, dale que vas 🚀",
+  "¡Crack! Vas a salir hecho/a un/a profesional",
+  "¡Bien ahí! Cada video te suma un nivel 🔥",
+  "¡Excelente! Seguí así que estás re bien encaminado/a",
+  "¡Imparable! Una menos, las que faltan no saben lo que les espera",
+  "¡Lo lograste! Estás más cerca de dominarlo todo 💪",
+];
+
+const pickCongratsMessage = () =>
+  CONGRATS_MESSAGES[Math.floor(Math.random() * CONGRATS_MESSAGES.length)];
 
 interface Lesson {
   id: string;
@@ -24,11 +40,14 @@ interface Course {
 
 const CourseView = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -71,6 +90,49 @@ const CourseView = () => {
 
     fetchCourse();
   }, [slug]);
+
+  // Load completed lesson ids for the current user + course
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (!user || lessons.length === 0) return;
+
+      const lessonIds = lessons.map((l) => l.id);
+      const { data, error } = await supabase
+        .from("lesson_progress")
+        .select("lesson_id")
+        .eq("user_id", user.id)
+        .in("lesson_id", lessonIds);
+
+      if (error) {
+        console.error("Error fetching progress:", error);
+        return;
+      }
+
+      setCompletedIds(new Set((data || []).map((row) => row.lesson_id)));
+    };
+
+    loadProgress();
+  }, [user, lessons]);
+
+  const handleVideoEnded = async () => {
+    if (!user || !currentLesson) return;
+    if (completedIds.has(currentLesson.id)) return;
+
+    const { error } = await supabase
+      .from("lesson_progress")
+      .insert({ user_id: user.id, lesson_id: currentLesson.id });
+
+    if (error && error.code !== "23505") {
+      console.error("Error saving progress:", error);
+      return;
+    }
+
+    setCompletedIds((prev) => new Set(prev).add(currentLesson.id));
+    toast({
+      title: pickCongratsMessage(),
+      description: `Terminaste "${currentLesson.title}"`,
+    });
+  };
 
   // Get signed URL for video
   useEffect(() => {
@@ -147,6 +209,7 @@ const CourseView = () => {
                   controls
                   className="h-full w-full"
                   autoPlay
+                  onEnded={handleVideoEnded}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
@@ -169,6 +232,8 @@ const CourseView = () => {
                 <p className="mt-4 text-muted-foreground">{currentLesson.description}</p>
               )}
             </div>
+
+            {currentLesson && <LessonComments lessonId={currentLesson.id} />}
           </div>
 
           {/* Lessons Sidebar */}
@@ -178,33 +243,61 @@ const CourseView = () => {
                 {course.title}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {lessons.length} lecciones
+                {completedIds.size} de {lessons.length} lecciones completadas
               </p>
+              {lessons.length > 0 && (
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${(completedIds.size / lessons.length) * 100}%` }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="divide-y divide-border">
-              {lessons.map((lesson, index) => (
-                <button
-                  key={lesson.id}
-                  onClick={() => setCurrentLesson(lesson)}
-                  className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-secondary/50 ${
-                    currentLesson?.id === lesson.id ? "bg-secondary" : ""
-                  }`}
-                >
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{lesson.title}</p>
-                    {lesson.is_preview && (
-                      <span className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
-                        <CheckCircle className="h-3 w-3" />
-                        Preview
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
+              {lessons.map((lesson, index) => {
+                const isCompleted = completedIds.has(lesson.id);
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => setCurrentLesson(lesson)}
+                    className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                      currentLesson?.id === lesson.id ? "bg-secondary" : ""
+                    }`}
+                  >
+                    <div
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+                        isCompleted
+                          ? "bg-green-500/20 text-green-500"
+                          : "bg-primary/20 text-primary"
+                      }`}
+                    >
+                      {isCompleted ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`font-medium ${
+                          isCompleted ? "text-muted-foreground" : "text-foreground"
+                        }`}
+                      >
+                        {lesson.title}
+                      </p>
+                      {lesson.is_preview && !isCompleted && (
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
+                          <CheckCircle className="h-3 w-3" />
+                          Preview
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs text-green-500">
+                          Completada
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -43,7 +43,6 @@ const AdminCourses = () => {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState({
     title: "",
-    slug: "",
     description: "",
   });
   const [saving, setSaving] = useState(false);
@@ -78,7 +77,7 @@ const AdminCourses = () => {
 
   const openCreateDialog = () => {
     setEditingCourse(null);
-    setFormData({ title: "", slug: "", description: "" });
+    setFormData({ title: "", description: "" });
     setIsDialogOpen(true);
   };
 
@@ -86,17 +85,16 @@ const AdminCourses = () => {
     setEditingCourse(course);
     setFormData({
       title: course.title,
-      slug: course.slug,
       description: course.description || "",
     });
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.slug.trim()) {
+    if (!formData.title.trim()) {
       toast({
-        title: "Error",
-        description: "Título y slug son obligatorios",
+        title: "Falta el título",
+        description: "Poné un nombre para el curso",
         variant: "destructive",
       });
       return;
@@ -106,12 +104,10 @@ const AdminCourses = () => {
 
     try {
       if (editingCourse) {
-        // Update
         const { error } = await supabase
           .from("courses")
           .update({
             title: formData.title.trim(),
-            slug: formData.slug.trim(),
             description: formData.description.trim() || null,
           })
           .eq("id", editingCourse.id);
@@ -120,14 +116,33 @@ const AdminCourses = () => {
 
         toast({ title: "Curso actualizado" });
       } else {
-        // Create
-        const { error } = await supabase.from("courses").insert({
-          title: formData.title.trim(),
-          slug: formData.slug.trim(),
-          description: formData.description.trim() || null,
-        });
+        const baseSlug = generateSlug(formData.title) || `curso-${Date.now().toString(36)}`;
+        let slug = baseSlug;
+        let attempt = 0;
+        let inserted = false;
 
-        if (error) throw error;
+        while (!inserted && attempt < 5) {
+          const { error } = await supabase.from("courses").insert({
+            title: formData.title.trim(),
+            slug,
+            description: formData.description.trim() || null,
+          });
+
+          if (!error) {
+            inserted = true;
+            break;
+          }
+
+          const isDuplicate = error.code === "23505" || /duplicate|unique/i.test(error.message);
+          if (!isDuplicate) throw error;
+
+          attempt += 1;
+          slug = `${baseSlug}-${attempt + 1}`;
+        }
+
+        if (!inserted) {
+          throw new Error("No se pudo generar un identificador único para el curso");
+        }
 
         toast({ title: "Curso creado" });
       }
@@ -289,26 +304,8 @@ const AdminCourses = () => {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => {
-                  const title = e.target.value;
-                  setFormData({
-                    ...formData,
-                    title,
-                    slug: editingCourse ? formData.slug : generateSlug(title),
-                  });
-                }}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Nombre del curso"
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="slug">Slug (URL)</Label>
-              <Input
-                id="slug"
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                placeholder="url-del-curso"
                 className="mt-2"
               />
             </div>
@@ -324,6 +321,12 @@ const AdminCourses = () => {
                 rows={3}
               />
             </div>
+
+            {!editingCourse && (
+              <p className="text-xs text-muted-foreground">
+                Después de crear el curso vas a poder subir la portada y los videos de cada lección.
+              </p>
+            )}
           </div>
 
           <DialogFooter>
